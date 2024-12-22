@@ -10,14 +10,72 @@ import cv2
 from tqdm import tqdm
 import tkinter as tk
 from tkinter import filedialog
+import os
+#pip install opencv-python
 
 # Load the hyperspectral cube from ENVI format
+from spectral import open_image
+from spectral.io.envi import save_image
+import numpy as np
+
+
 def load_hsi(file_path):
     """
     Load the hyperspectral image cube from an ENVI file.
     """
     hsi_cube = open_image(file_path).load()
     return hsi_cube
+
+
+def create_header_from_cube(hsi_cube):
+    """
+    Create a header for the ENVI file based on the content of the HSI cube.
+
+    Parameters:
+        hsi_cube: ndarray
+            The hyperspectral image data.
+
+    Returns:
+        header: dict
+            A dictionary containing the ENVI header information.
+    """
+    header = {
+        'samples': hsi_cube.shape[1],  # Number of columns (pixels per line)
+        'lines': hsi_cube.shape[0],  # Number of rows (lines)
+        'bands': hsi_cube.shape[2],  # Number of spectral bands
+        'interleave': 'bil',  # Default interleave format (Band Interleaved by Line)
+        'data type': 4,  # Default data type (32-bit float for numpy.float32)
+        'byte order': 0  # Default byte order (little-endian)
+    }
+
+    # Set wavelength information if available
+    # header['wavelength'] = ['wavelength_1', 'wavelength_2', ...]  # Example
+
+    return header
+
+
+def save_hsi_as(hsi_cube, output_file_path):
+    """
+    Save the hyperspectral image cube to an ENVI file with a new name.
+
+    Parameters:
+        hsi_cube: ndarray
+            The hyperspectral image data to save.
+        output_file_path: str
+            The path to save the new ENVI file.
+    """
+    # Create a header from the cube
+    header = create_header_from_cube(hsi_cube)
+
+    # Save the HSI cube with the new header
+    save_image(output_file_path, hsi_cube, metadata=header, force=True)
+
+
+# Example Usage
+# file_path = 'example_image.hdr'  # Replace with your ENVI file path
+# hsi_cube = load_hsi(file_path)
+
+
 
 
 # Calculate extensive statistical metrics
@@ -88,7 +146,7 @@ def generate_rgb(hsi_cube):
     """
     Generate an RGB image from the hyperspectral cube.
     """
-    r_band = hsi_cube[:, :, 130]
+    r_band = hsi_cube[:, :, 170]
     g_band = hsi_cube[:, :, 50]
     b_band = hsi_cube[:, :, 10]
     r_band = cv2.normalize(r_band, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
@@ -220,9 +278,13 @@ def main():
 
     if roi:
         x_start, x_end, y_start, y_end = roi
-        hsi_cube = hsi_cube[y_start:y_end, x_start:x_end, :]
-        print(f"Using ROI: x=({x_start}, {x_end}), y=({y_start}, {y_end})")
-
+        hsi_cube = hsi_cube[y_start:y_end, x_start:x_end, 1:11]
+        print(f"Using ROI: x=({x_start}, {x_end}), y=({y_start}, {y_end}) {hsi_cube.shape}")
+        # Save the HSI cube under a new name with a generated header
+        base, ext = os.path.splitext(file_path)
+        output_file_path = f"{base}_cropped{ext}"
+        save_hsi_as(hsi_cube, output_file_path)
+        print(f'Saved new hsi as {output_file_path}')
     save_config(file_path, roi)
     stats = calculate_statistics(hsi_cube)
 
