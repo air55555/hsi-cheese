@@ -70,7 +70,7 @@ def display_full_cube(rgb_image, **stat_maps):
     Display the full-size RGB image and statistical maps.
     """
     num_stats = len(stat_maps)
-    plt.figure(figsize=(150, 100))
+    plt.figure(figsize=(15, 10))
     cols = 4
     rows = -(-num_stats // cols) + 1  # Add one row for the RGB image
 
