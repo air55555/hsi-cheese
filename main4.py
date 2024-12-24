@@ -95,8 +95,8 @@ def generate_rgb(hsi_cube):
     """
     Generate an RGB image from the hyperspectral cube.
     """
-    r_band = hsi_cube[:, :, 170]
-    g_band = hsi_cube[:, :, 50]
+    r_band = hsi_cube[:, :, 17]
+    g_band = hsi_cube[:, :, 5]
     b_band = hsi_cube[:, :, 10]
     r_band = cv2.normalize(r_band, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
     g_band = cv2.normalize(g_band, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
@@ -232,6 +232,11 @@ def main():
         # Save the HSI cube under a new name with a generated header
         base, ext = os.path.splitext(file_path)
         output_file_path = f"{base}_{str(hsi_cube.shape).replace(' ', '')}_cropped{ext}"
+        #normalize
+        cube_min = hsi_cube.min()
+        cube_max = hsi_cube.max()
+        normalized_data = (hsi_cube - cube_min) / (cube_max - cube_min)
+        hsi_cube = normalized_data
 
         save_hsi_as(hsi_cube, output_file_path)
         envi_to_matlab(output_file_path)
