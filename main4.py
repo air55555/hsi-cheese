@@ -12,6 +12,7 @@ import tkinter as tk
 from tkinter import filedialog
 import os
 #pip install opencv-python
+from save_mat import *
 
 # Load the hyperspectral cube from ENVI format
 from spectral import open_image
@@ -278,13 +279,15 @@ def main():
 
     if roi:
         x_start, x_end, y_start, y_end = roi
-        hsi_cube = hsi_cube[y_start:y_end, x_start:x_end, 1:11]
+        hsi_cube = hsi_cube[y_start:y_end, x_start:x_end, 1:30]
         print(f"Using ROI: x=({x_start}, {x_end}), y=({y_start}, {y_end}) {hsi_cube.shape}")
         # Save the HSI cube under a new name with a generated header
         base, ext = os.path.splitext(file_path)
         output_file_path = f"{base}_cropped{ext}"
+
         save_hsi_as(hsi_cube, output_file_path)
-        print(f'Saved new hsi as {output_file_path}')
+        envi_to_matlab(output_file_path)
+        print(f'Saved mat from {output_file_path},{hsi_cube.shape}')
     save_config(file_path, roi)
     stats = calculate_statistics(hsi_cube)
 
