@@ -214,11 +214,13 @@ def main():
         print("No file selected. Please choose a hyperspectral HDR file.")
         file_path = select_file()
         if file_path:
+            #extract_31_bands(file_path)
             save_config(file_path)
         else:
             print("No file selected. Exiting...")
             return
     hsi_cube = load_hsi(file_path)
+
     rgb_image = generate_rgb(hsi_cube)
     if not roi:
         roi = select_roi(rgb_image)
@@ -242,6 +244,14 @@ def main():
         envi_to_matlab(output_file_path)
         print(f'Saved mat from {output_file_path},{hsi_cube.shape}')
     save_config(file_path, roi)
+
+    hsi_downsampled = spatial_downsampling(hsi_cube,2)
+    hsi_combined = synergize_hsi(hsi_downsampled,align=False)
+    print(f'Downsampled synergised {len(hsi_downsampled)} cubes ')
+    output_file_path = f"{base}_{str(hsi_cube.shape).replace(' ', '')}_downsamled_sf2{ext}"
+    print(output_file_path)
+    save_hsi_as(hsi_combined, output_file_path)
+
     stats = calculate_statistics(hsi_cube)
 
     #regenerate rgb with roi

@@ -63,7 +63,18 @@ def generate_rgb(hsi_cube):
     rgb_image = np.stack((r_band, g_band, b_band), axis=2)
     return rgb_image
 
+def calculate_sum(start, end):
+    """
+    Calculate the sum of all numbers from start to end (inclusive).
 
+    Parameters:
+        start (int): The starting number.
+        end (int): The ending number.
+
+    Returns:
+        int: The sum of numbers from start to end.
+    """
+    return sum(range(start, end + 1))
 # Display the full hyperspectral cube and maps
 def display_full_cube(rgb_image, **stat_maps):
     """
@@ -145,14 +156,17 @@ def main(file_path):
     """
     Main function to process the hyperspectral image cube.
     """
-    # Load the full HSI cube
-    hsi_cube = load_hsi(file_path)
-    original_shape = hsi_cube.shape
+    # Loadc
+    print("scfvsfbvsdfbv")
+    s=calculate_sum(1,100)
+    print(s)
+    hsi_cube =None# load_hsi(file_path)
+    #original_shape = hsi_cube.shape
 
     # Downsample for analysis (optional)
     hsi_cube_small = hsi_cube
     downsample_factor = 5
-    if downsample_factor > 1:
+    if downsample_factor == 1:
         hsi_cube_small = hsi_cube[::downsample_factor, ::downsample_factor, :]
 
     # Calculate statistics
@@ -181,5 +195,5 @@ def main(file_path):
 
 # Run the app
 if __name__ == "__main__":
-    file_path = "2024913/2024-09-13_08-04-13_white_circ_t.hdr"  # Replace with the path to your .hdr file
-    main(file_path)
+    #file_path = "2024913/2024-09-13_08-04-13_white_circ_t.hdr"  # Replace with the path to your .hdr file
+    main("")
