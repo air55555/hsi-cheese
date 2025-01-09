@@ -91,13 +91,14 @@ def calculate_statistics(hsi_cube):
 
 
 # Generate an RGB image
-def generate_rgb(hsi_cube):
+def generate_rgb(hsi_cube,rb,gb,bb):
     """
     Generate an RGB image from the hyperspectral cube.
+    r g b band nums
     """
-    r_band = hsi_cube[:, :, 17]
-    g_band = hsi_cube[:, :, 5]
-    b_band = hsi_cube[:, :, 10]
+    r_band = hsi_cube[:, :, rb]
+    g_band = hsi_cube[:, :, gb]
+    b_band = hsi_cube[:, :, bb]
     r_band = cv2.normalize(r_band, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
     g_band = cv2.normalize(g_band, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
     b_band = cv2.normalize(b_band, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
@@ -234,6 +235,7 @@ def main():
         # Save the HSI cube under a new name with a generated header
         base, ext = os.path.splitext(file_path)
         output_file_path = f"{base}_{str(hsi_cube.shape).replace(' ', '')}_cropped{ext}"
+
         #normalize
         cube_min = hsi_cube.min()
         cube_max = hsi_cube.max()
@@ -244,14 +246,14 @@ def main():
         envi_to_matlab(output_file_path)
         print(f'Saved mat from {output_file_path},{hsi_cube.shape}')
     save_config(file_path, roi)
-
-    hsi_downsampled = spatial_downsampling(hsi_cube,2)
+    sf = 8
+    hsi_downsampled = spatial_downsampling(hsi_cube,sf)
     hsi_combined = synergize_hsi(hsi_downsampled,align=False)
     print(f'Downsampled synergised {len(hsi_downsampled)} cubes ')
-    output_file_path = f"{base}_{str(hsi_cube.shape).replace(' ', '')}_downsamled_sf2{ext}"
+    output_file_path = f"{base}_{str(hsi_cube.shape).replace(' ', '')}_downsampled_sf{sf}{ext}"
     print(output_file_path)
     save_hsi_as(hsi_combined, output_file_path)
-
+    envi_to_matlab(output_file_path)
     stats = calculate_statistics(hsi_cube)
 
     #regenerate rgb with roi
