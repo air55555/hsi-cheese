@@ -19,6 +19,7 @@ from save_mat import *
 import numpy as np
 
 from utils import *
+from libs.utils import reduce_bands_and_save_hsi_envi
 
 # Example Usage
 # file_path = 'example_image.hdr'  # Replace with your ENVI file path
@@ -222,7 +223,7 @@ def main():
             return
     hsi_cube = load_hsi(file_path)
 
-    rgb_image = generate_rgb(hsi_cube)
+    rgb_image = generate_rgb(hsi_cube,10,20,30)
     if not roi:
         roi = select_roi(rgb_image)
         if roi:
@@ -232,6 +233,7 @@ def main():
         x_start, x_end, y_start, y_end = roi
         hsi_cube = hsi_cube[y_start:y_end, x_start:x_end, :]
         print(f"Using ROI: x=({x_start}, {x_end}), y=({y_start}, {y_end}) {hsi_cube.shape}")
+
         # Save the HSI cube under a new name with a generated header
         base, ext = os.path.splitext(file_path)
         output_file_path = f"{base}_{str(hsi_cube.shape).replace(' ', '')}_cropped{ext}"
@@ -241,7 +243,7 @@ def main():
         cube_max = hsi_cube.max()
         normalized_data = (hsi_cube - cube_min) / (cube_max - cube_min)
         hsi_cube = normalized_data
-
+        reduce_bands_and_save_hsi_envi(hsi_cube,56)
         save_hsi_as(hsi_cube, output_file_path)
         envi_to_matlab(output_file_path)
         print(f'Saved mat from {output_file_path},{hsi_cube.shape}')
