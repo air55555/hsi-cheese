@@ -18,8 +18,8 @@ def process_hdr(hdr_path: Path) -> None:
     stats = {k: v for k, v in stats.items() if v is not None}
 
     cube_dir_name = hdr_path.parent.name
-    out_dir = OUTPUT_ROOT / cube_dir_name
-    prefix = f"{hdr_path.stem}_"
+    out_dir = OUTPUT_ROOT
+    prefix = f"{cube_dir_name}_{hdr_path.stem}_"
 
     out = save_images_to_files(out_dir, rgb, stats, prefix=prefix)
     print(f"[OK] {hdr_path} -> {out} ({1 + len(stats)} images)")
