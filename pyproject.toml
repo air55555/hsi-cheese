@@ -1,0 +1,29 @@
+ [build-system]
+ requires = ["setuptools>=61", "wheel"]
+ build-backend = "setuptools.build_meta"
+
+ [project]
+ name = "hsi_statistic"
+ version = "0.1.0"
+ description = "Interactive hyperspectral image statistics and preprocessing toolkit for ENVI hyperspectral cubes."
+ requires-python = ">=3.8"
+ dependencies = [
+     "numpy",
+     "matplotlib",
+     "spectral",
+     "scipy",
+     "tqdm",
+     "opencv-python",
+ ]
+
+[project.scripts]
+hsi-statistic = "hsi_statistic.cli:main"
+hsi-statistic-roi = "hsi_statistic.roi_gui:main"
+
+ [tool.setuptools]
+py-modules = ["main4", "utils", "save_mat"]
+packages = ["hsi_statistic", "libs"]
+ include-package-data = true
+
+ [tool.setuptools.package-dir]
+ "" = "."

@@ -1,5 +1,3 @@
-import matplotlib
-matplotlib.use('TkAgg')
 import numpy as np
 import matplotlib.pyplot as plt
 from spectral import open_image
@@ -13,10 +11,6 @@ from tkinter import filedialog
 import os
 #pip install opencv-python
 from save_mat import *
-
-# Load the hyperspectral cube from ENVI format
-
-import numpy as np
 
 from utils import *
 from libs.utils import reduce_bands_and_save_hsi_envi
@@ -76,7 +70,6 @@ def calculate_statistics(hsi_cube):
         ("4th Moment", lambda x: np.mean((x - np.mean(x, axis=2, keepdims=True))**4, axis=2)),
         ("Cumulative Sum", lambda x: np.cumsum(x, axis=2)[..., -1]),
         ("Cumulative Product", lambda x: np.cumprod(x + 1e-8, axis=2)[..., -1]),
-        ("Cumulative Product", lambda x: np.cumprod(x + 1e-8, axis=2)[..., -1]),
     ]
 
     # Use tqdm to iterate over calculations
@@ -113,23 +106,6 @@ def save_config(file_path, roi=None, config_path="config.json"):
         json.dump(config, config_file, indent=4)
 
 
-# Select ROI
-def select_roi(rgb_image):
-    global roi_coords
-
-    def on_select(eclick, erelease):
-        global roi_coords
-        x_start, y_start = int(eclick.xdata), int(eclick.ydata)
-        x_end, y_end = int(erelease.xdata), int(erelease.ydata)
-        roi_coords = (x_start, x_end, y_start, y_end)
-
-    roi_coords = None
-    fig, ax = plt.subplots()
-    ax.imshow(rgb_image)
-    ax.set_title("Select ROI and close window.")
-    rect_selector = RectangleSelector(ax, on_select, interactive=True, useblit=True)
-    plt.show()
-    return roi_coords
 def load_config(config_path="config.json"):
     """
     Load the file path and region of interest (ROI) from the configuration file.
@@ -243,12 +219,12 @@ def main():
         cube_max = hsi_cube.max()
         normalized_data = (hsi_cube - cube_min) / (cube_max - cube_min)
         hsi_cube = normalized_data
-        reduce_bands_and_save_hsi_envi(hsi_cube,56)
+        reduce_bands_and_save_hsi_envi(hsi_cube,88)
         save_hsi_as(hsi_cube, output_file_path)
         envi_to_matlab(output_file_path)
         print(f'Saved mat from {output_file_path},{hsi_cube.shape}')
     save_config(file_path, roi)
-    sf = 8
+    sf = 1#8
     hsi_downsampled = spatial_downsampling(hsi_cube,sf)
     hsi_combined = synergize_hsi(hsi_downsampled,align=False)
     print(f'Downsampled synergised {len(hsi_downsampled)} cubes ')
@@ -259,7 +235,7 @@ def main():
     stats = calculate_statistics(hsi_cube)
 
     #regenerate rgb with roi
-    rgb_image = generate_rgb(hsi_cube)
+    rgb_image = generate_rgb(hsi_cube,10,20,30)
 
     display_images(rgb_image, **stats)
 
