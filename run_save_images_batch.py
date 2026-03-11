@@ -31,19 +31,17 @@ def main() -> None:
 
     OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
 
-    # One HDR per cube directory under CAPTURE_ROOT
+    # All HDRs in each cube directory under CAPTURE_ROOT
     for cube_dir in sorted(p for p in CAPTURE_ROOT.iterdir() if p.is_dir()):
         hdr_files = sorted(cube_dir.glob("*.hdr"))
         if not hdr_files:
             print(f"[SKIP] No HDR in {cube_dir}")
             continue
-
-        hdr_path = hdr_files[0]
-
-        try:
-            process_hdr(hdr_path)
-        except Exception as e:  # noqa: BLE001
-            print(f"[ERROR] Failed for {hdr_path}: {e}")
+        for hdr_path in hdr_files:
+            try:
+                process_hdr(hdr_path)
+            except Exception as e:  # noqa: BLE001
+                print(f"[ERROR] Failed for {hdr_path}: {e}")
 
 
 if __name__ == "__main__":
