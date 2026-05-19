@@ -11,6 +11,7 @@ import argparse
 import math
 import random
 import re
+import time
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Sequence, Tuple
 
@@ -248,12 +249,19 @@ def build_law_catalog() -> Dict[str, Tuple[str, Callable[[int], List[Tuple[int, 
 def export_law(cube: np.ndarray, triplets: Sequence[Tuple[int, int, int]], law_dir: Path, law_name: str) -> int:
     law_dir.mkdir(parents=True, exist_ok=True)
     count = 0
+    total = len(triplets)
+    t0 = time.perf_counter()
+    print(f"[{law_name}] start -> {total} images")
+    progress_every = max(1, total // 10)
     for idx, (r, g, b) in enumerate(triplets, start=1):
         rgb = rgb_from_bands(cube, r, g, b)
         out_name = f"{idx:03d}_R{r:03d}_G{g:03d}_B{b:03d}.png"
         Image.fromarray(rgb).save(law_dir / out_name)
         count += 1
-    print(f"[{law_name}] saved {count} pngs -> {law_dir}")
+        if idx == 1 or idx == total or (idx % progress_every == 0):
+            print(f"[{law_name}] progress {idx}/{total} ({(100.0 * idx / total):.1f}%)")
+    elapsed = time.perf_counter() - t0
+    print(f"[{law_name}] saved {count} pngs -> {law_dir} in {elapsed:.2f}s")
     return count
 
 
@@ -297,8 +305,13 @@ def main() -> None:
     if args.out_dir is None:
         parser.error("--out-dir is required unless --list-laws is used")
 
+    run_t0 = time.perf_counter()
+    print("[run] loading cube...")
     cube = load_cube(args.hdr, args.data)
     bands = cube.shape[0]
+    lines = cube.shape[1]
+    samples = cube.shape[2]
+    print(f"[run] cube loaded: bands={bands}, lines={lines}, samples={samples}")
 
     all_laws = {name: fn(bands) for name, (_, fn) in catalog.items()}
 
@@ -307,13 +320,16 @@ def main() -> None:
         if name not in all_laws:
             raise ValueError(f"Unknown law '{name}'. Available: {', '.join(all_laws.keys())}")
         requested.append(name)
+    print(f"[run] requested laws: {', '.join(requested)}")
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     total = 0
-    for law_name in requested:
+    for idx, law_name in enumerate(requested, start=1):
+        print(f"[run] ({idx}/{len(requested)}) exporting {law_name}")
         total += export_law(cube, all_laws[law_name], args.out_dir / law_name, law_name)
 
-    print(f"Done. Total PNG saved: {total}")
+    run_elapsed = time.perf_counter() - run_t0
+    print(f"[run] done. Total PNG saved: {total}. Total time: {run_elapsed:.2f}s")
 
 
 if __name__ == "__main__":
